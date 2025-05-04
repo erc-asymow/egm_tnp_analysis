@@ -1,3 +1,7 @@
+#define NPTBINS 15
+#define NETABINS 48
+#define NUTBINS 17
+
 void make3dsf() {
 	std::string step("isonotrig");
 	std::string Step, Title;
@@ -20,15 +24,15 @@ void make3dsf() {
 	std::string Filename("3dsf");
 	Filename+=step+std::string(".root");
 	TFile *output=new TFile(Filename.c_str(),"RECREATE");
-	double ptarray[16] = {24., 26., 28., 30., 32., 34., 36., 38., 40., 42., 44., 47., 50., 55., 60., 65.};
-	double utarray[18] = {-3000000000,-30,-15,-10,-5,0,5,10,15,30,40,50,60,70,80,90,100,30000000000};
-	double etaarray[49];
-	for (unsigned int i=0; i!=49; i++) {
+	double ptarray[NPTBINS+1] = {24., 26., 28., 30., 32., 34., 36., 38., 40., 42., 44., 47., 50., 55., 60., 65.};
+	double utarray[NUTBINS+1] = {-3000000000,-30,-15,-10,-5,0,5,10,15,30,40,50,60,70,80,90,100,30000000000};
+	double etaarray[NETABINS+1];
+	for (unsigned int i=0; i!=(NETABINS+1); i++) {
 		etaarray[i] = -2.4+i*0.1;
 	}
-	TH3D *histo=new TH3D(Title.c_str(),"",48,etaarray,15,ptarray,17,utarray);
+	TH3D *histo=new TH3D(Title.c_str(),"",NETABINS,etaarray,NPTBINS,ptarray,NUTBINS,utarray);
 	std::vector<TH2D*> sfs, effdata, effmc;
-	for (unsigned int i=1; i!=18; i++) {
+	for (unsigned int i=1; i!=(NUTBINS+1); i++) {
 		std::string filename("/scratch/bruschin/cmsasymow/2018isotrig/egm_tnp_analysis/bin");
 		filename+=std::to_string(i)+std::string("/efficiencies_GtoH/")+Step+std::string("/allEfficiencies_2D.root");
 		TFile *file=new TFile(filename.c_str());
@@ -38,15 +42,15 @@ void make3dsf() {
 		effdata.push_back(Histo2);
 		//file->Close();
 	}
-	for (unsigned int i=1; i!=18; i++) {
+	for (unsigned int i=1; i!=(NUTBINS+1); i++) {
 		std::string filename("/scratch/bruschin/cmsasymow/2018isotrig/Steve_Marc_Raj/");
 		filename+=step+std::string("mc_")+std::to_string(i)+std::string(".root");
 		TFile *file=new TFile(filename.c_str());
 		TH3D* Histo1=(TH3D*)file->Get("pass_mu_DY_postVFP")->Clone((std::string("pass_mu_DY_postVFP")+std::to_string(i)).c_str());
 		TH3D* Histo2=(TH3D*)file->Get("fail_mu_DY_postVFP")->Clone((std::string("fail_mu_DY_postVFP")+std::to_string(i)).c_str());
 		TH2D* Histo=new TH2D((std::string("EffMC2D")+std::to_string(i)).c_str(),"",48,etaarray,15,ptarray);
-		for (unsigned int I=0; I!=48; I++) {
-			for (unsigned int J=0; J!=15; J++) {
+		for (unsigned int I=0; I!=NETABINS; I++) {
+			for (unsigned int J=0; J!=NPTBINS; J++) {
 				double pass=0, fail=0;
 				for (unsigned int H=0; H!=Histo1->GetXaxis()->GetNbins(); H++) {
 					pass+=Histo1->GetBinContent(H+1,J+1,I+1);
@@ -61,9 +65,9 @@ void make3dsf() {
 		//delete Histo2;
 		//file->Close();
 	}
-	for (unsigned int h=0; h!=17; h++) {
-		for (unsigned int i=0; i!=48; i++) {
-			for (unsigned int j=0; j!=15; j++) {
+	for (unsigned int h=0; h!=NUTBINS; h++) {
+		for (unsigned int i=0; i!=NETABINS; i++) {
+			for (unsigned int j=0; j!=NPTBINS; j++) {
 				histo->SetBinContent(i+1,j+1,h+1,effdata[h]->GetBinContent(i+1,j+1)/effmc[h]->GetBinContent(i+1,j+1));
 				histo->SetBinError(i+1,j+1,h+1,sfs[h]->GetBinError(i+1,j+1));
 			}
