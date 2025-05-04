@@ -3,8 +3,9 @@
 #include <boost/algorithm/string/replace.hpp>
 
 void createjobs() {
+	unsigned int nutbins=17;
 	std::ofstream script("script.sh");
-	for (unsigned int i=1; i!=18; i++) {
+	for (unsigned int i=1; i!=(nutbins+1); i++) {
 		std::string filename("runFits_");
 		filename+=std::to_string(i)+std::string(".py");
 		std::ofstream pythonfile;
